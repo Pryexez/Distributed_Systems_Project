@@ -1,0 +1,113 @@
+# docker-compose for building the image for debugging and uploading to docker hub
+version: '0'
+services:
+  udp-sensor1:
+    container_name: sensor1
+    build:
+       dockerfile: ./sensor/docker/Dockerfile
+    networks:
+      vs_network:
+    depends_on:
+      - iot-gateway
+
+  udp-sensor2:
+    container_name: sensor2
+    build:
+      dockerfile: ./sensor/docker/Dockerfile
+    networks:
+      vs_network:
+    depends_on:
+      - udp-sensor1
+
+  udp-sensor3:
+    container_name: sensor3
+    build:
+      dockerfile: ./sensor/docker/Dockerfile
+    networks:
+      vs_network:
+    depends_on:
+      - udp-sensor2
+
+  iot-gateway:
+    container_name: gateway
+    build:
+       dockerfile: ./iot_gateway/docker/Dockerfile
+    ports:
+      - 1234:1234/udp
+    networks:
+      vs_network:
+    depends_on:
+      - http-server
+
+  http-server:
+    container_name: server
+    build:
+      dockerfile: ./http_Server/docker/Dockerfile
+    ports:
+      - 2424:2424
+    networks:
+      vs_network:
+    depends_on:
+      - database
+
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    ports:
+      - 1883:1883
+      - 9001:9001
+    volumes:
+      - ./mosquitto:/mosquitto/config
+    networks:
+      vs_network:
+
+  database:
+    container_name: database
+    build:
+      dockerfile: ./thrift_database/docker/Dockerfile
+    ports:
+      - 9987:9987
+    networks:
+      vs_network:
+
+  database2:
+    container_name: database2
+    build:
+      dockerfile: ./thrift_database2/docker/Dockerfile
+    ports:
+      - 9997:9997
+    networks:
+      vs_network:
+
+  mqtt_sensor1:
+    container_name: mqtt_sensor1
+    build:
+      dockerfile: ./mqtt_sensor/docker/Dockerfile
+    networks:
+      vs_network:
+    depends_on:
+      - mosquitto
+
+  mqtt_sensor2:
+    container_name: mqtt_sensor2
+    build:
+      dockerfile: ./mqtt_sensor/docker/Dockerfile
+    networks:
+      vs_network:
+    depends_on:
+      - mosquitto
+
+  mqtt_adapter:
+    container_name: mqtt_adapter
+    build:
+      dockerfile: ./mqtt_adapter/docker/Dockerfile
+    networks:
+      vs_network:
+    depends_on:
+      - mosquitto
+
+
+
+networks:
+  vs_network:
+

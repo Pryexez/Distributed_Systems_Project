@@ -1,1 +1,3 @@
-# Distributed_Systems_Project
+# Praktikum
+
+Praktikums repository der Gruppe E
